@@ -1,30 +1,51 @@
 // config/firebase.js
-const admin = require("firebase-admin");
+const admin = require('firebase-admin');
 
 function initFirebaseAdmin() {
-  // If already initialized (hot reload / serverless reuse)
-  if (admin.apps.length) return admin;
+  try {
+    // Check if already initialized
+    if (admin.apps.length > 0) {
+      console.log('✅ Firebase Admin already initialized');
+      return admin;
+    }
 
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    let serviceAccount;
 
-  if (!projectId || !clientEmail || !privateKey) {
-    throw new Error("Missing Firebase Admin env vars: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY");
+    // ✅ METHOD 1: Use base64-encoded service account (RECOMMENDED for Railway/Render)
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+      console.log('🔑 Loading Firebase credentials from base64...');
+      const base64String = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+      const jsonString = Buffer.from(base64String, 'base64').toString('utf-8');
+      serviceAccount = JSON.parse(jsonString);
+    }
+    // ✅ METHOD 2: Use individual environment variables (fallback)
+    else if (process.env.FIREBASE_PRIVATE_KEY) {
+      console.log('🔑 Loading Firebase credentials from env vars...');
+      serviceAccount = {
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        // Replace literal \n with actual newlines
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      };
+    }
+    // ❌ No credentials found
+    else {
+      throw new Error('No Firebase credentials found. Set FIREBASE_SERVICE_ACCOUNT_BASE64 or individual env vars.');
+    }
+
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+
+    console.log('✅ Firebase Admin initialized successfully');
+    return admin;
+  } catch (error) {
+    console.error('❌ Firebase Admin initialization failed:', error.message);
+    throw error;
   }
-
-  // Railway often stores \n literally; convert to real newlines
-  privateKey = privateKey.replace(/\\n/g, "\n");
-
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId,
-      clientEmail,
-      privateKey,
-    }),
-  });
-
-  return admin;
 }
 
-module.exports = initFirebaseAdmin();
+// Initialize Firebase Admin
+initFirebaseAdmin();
+
+module.exports = admin;
