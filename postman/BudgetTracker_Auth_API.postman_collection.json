@@ -1,0 +1,118 @@
+{
+  "info": {
+    "name": "BudgetTracker Auth API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for testing BudgetTracker authentication endpoints"
+  },
+  "item": [
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{FIREBASE_ID_TOKEN}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/auth/register",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "register"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"displayName\": \"Admin User\",\n  \"photoURL\": \"https://example.com/photo.jpg\",\n  \"phoneNumber\": \"+1234567890\",\n  \"role\": \"admin\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{FIREBASE_ID_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/auth/login",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Refresh Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{FIREBASE_ID_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/auth/refresh",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "refresh"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{FIREBASE_ID_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/auth/logout",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "logout"
+          ]
+        }
+      }
+    }
+  ]
+}
