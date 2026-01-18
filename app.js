@@ -58,5 +58,13 @@ app.listen(PORT, () => {
   console.log("you are listening on port :", PORT);
 });
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok", message: "Server is running" });
+  res.status(200).json({ status: "ok", message: "Server is running" , timestamp: new Date().toISOString()});
+});
+app.get("/version", (req, res) => {
+  res.json({
+    ok: true,
+    commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
+    nodeEnv: process.env.NODE_ENV,
+    urlApi: process.env.URL_API,
+  });
 });

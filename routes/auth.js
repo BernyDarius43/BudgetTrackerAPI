@@ -27,6 +27,7 @@ router.post(`${urlApi}/auth/register`, verifyFirebaseToken, async (req, res) => 
     let user = await User.findOne({ uid });
      // ✅ Idempotent: if user exists, return it
     if (user) {
+      console.log("[Register] User already exists, returning existing user");
       return res.status(200).json({
         message: 'User already registered',
         user,
@@ -43,32 +44,46 @@ router.post(`${urlApi}/auth/register`, verifyFirebaseToken, async (req, res) => 
       user,
     });
   } catch (error) {
+    console.error('[Register] Error:', error);
     res.status(500).json({ error: 'Registration error', detail: error.message });
-    console.log('Registration failed', error);
   }
 });
 
 // Login route
 router.post(`${urlApi}/auth/login`, verifyFirebaseToken, async (req, res) => {
-  const { uid } = req.firebase;
+  const { uid, email } = req.firebase;
+  
   try {
-  const user = await User.findOne({ uid });
+    let user = await User.findOne({ uid });
 
-  if (!user) {
-    return res.status(404).json({ error: 'User not found. Please register first.' });
-  }
+    // ✅ If user doesn't exist in MongoDB, create them
+    if (!user) {
+      console.log(`[Login] MongoDB user not found for uid: ${uid}, creating...`);
+      
+      const payload = buildUserPayload(req.firebase, req.body);
+      user = await User.create(payload);
+      
+      console.log(`[Login] MongoDB user created successfully`);
+      
+      return res.status(201).json({ 
+        message: 'User created and logged in successfully', 
+        user 
+      });
+    }
 
-  user.lastLogin = new Date();
-  await user.save();
+    // ✅ User exists, update lastLogin
+    user.lastLogin = new Date();
+    await user.save();
 
-  console.log("user logged:", user, "User token");
+    console.log("[Login] User logged in successfully:", user.email);
 
-  return res.status(200).json({ 
-    message: 'User logged in successfully', 
-    user });
+    return res.status(200).json({ 
+      message: 'User logged in successfully', 
+      user 
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
-    console.log("Login failed", error);
+    console.error("[Login] Error:", error);
+    res.status(500).json({ error: 'Login failed', detail: error.message });
   }
 });
 
