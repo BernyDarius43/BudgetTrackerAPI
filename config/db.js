@@ -2,10 +2,11 @@
 const mongoose = require("mongoose");
 
 const connectDB = async () => {
-  const env = process.env.NODE_ENV || "development";
+  const env = process.env.NODE_ENV;
+
 
   // Support both naming styles so you don’t get blocked by Railway naming mismatches
-  const uriDev = process.env.MONGODB_URI_DEV
+  const uriDev = process.env.MONGODB_URI_DEV;
 
   const uriProd = process.env.MONGODB_URI_PROD || process.env.MONGODB_URI
 
