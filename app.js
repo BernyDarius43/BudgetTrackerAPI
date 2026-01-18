@@ -5,7 +5,6 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const connectDB = require("./config/db");
-require("./config/firebase"); // initialize firebase-admin once
 
 const app = express();
 
