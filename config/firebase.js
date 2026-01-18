@@ -1,9 +1,30 @@
-const admin = require('firebase-admin');
-const serviceAccount = require('./budgettracker-8f9d7-firebase-adminsdk-k533o-528c3dbd97.json'); // Update the path
+// config/firebase.js
+const admin = require("firebase-admin");
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://budgettracker-8f9d7-default-rtdb.firebaseio.com", // Replace with your database URL
-});
+function initFirebaseAdmin() {
+  // If already initialized (hot reload / serverless reuse)
+  if (admin.apps.length) return admin;
 
-module.exports = admin;
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+
+  if (!projectId || !clientEmail || !privateKey) {
+    throw new Error("Missing Firebase Admin env vars: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY");
+  }
+
+  // Railway often stores \n literally; convert to real newlines
+  privateKey = privateKey.replace(/\\n/g, "\n");
+
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId,
+      clientEmail,
+      privateKey,
+    }),
+  });
+
+  return admin;
+}
+
+module.exports = initFirebaseAdmin();

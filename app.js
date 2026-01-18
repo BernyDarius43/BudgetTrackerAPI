@@ -1,42 +1,62 @@
-
+// app.js
 require("dotenv").config();
-const express = require('express');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser')
-const cors = require('cors');
-const connectDB  = require('./config/db');
-const firebase = require("./config/firebase");
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+
+const connectDB = require("./config/db");
+require("./config/firebase"); // initialize firebase-admin once
 
 const app = express();
-var corsOptions = {
-    origin: "http://localhost:3000"
-  };
-  
-//MiddleWare
+
+// --- CORS: supports 3 options ---
+// 1) Expo mobile (often sends no Origin) -> allowed
+// 2) Web frontend (origin must be whitelisted in CORS_ORIGINS) -> allowed
+// 3) Local dev (localhost origins can be included in CORS_ORIGINS) -> allowed
+const allowedOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      // Mobile apps / server-to-server calls may not send Origin
+      if (!origin) return cb(null, true);
+
+      // If no whitelist provided, allow all (good for early testing)
+      if (allowedOrigins.length === 0) return cb(null, true);
+
+      // Enforce whitelist for browser origins
+      return allowedOrigins.includes(origin)
+        ? cb(null, true)
+        : cb(new Error(`Not allowed by CORS: ${origin}`));
+    },
+    credentials: true,
+  })
+);
+
+// Middleware
 app.use(express.json());
-app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
-// Connect to mongoDB
+// Connect to MongoDB
 connectDB();
 
+// Routes
+const incomeRoutes = require("./routes/income");
+const homeRoutes = require("./routes/home");
+const expenseRoutes = require("./routes/expense");
+const authRoutes = require("./routes/auth");
+const userRoutes = require("./routes/user");
 
-
-//routes
-const income = require('./routes/income')
-const homeRoute   = require('./routes/home')
-const expenseRoute = require('./routes/expense')
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/user');
-
-app.use(homeRoute)
-app.use(income)
-app.use(expenseRoute)
+app.use(homeRoutes);
+app.use(incomeRoutes);
+app.use(expenseRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
 
-const PORT = process.env.PORT;
-
-app.listen(PORT, ()=> {
-    console.log("you are listening on port :", PORT);
-})
+const PORT = process.env.PORT || 1738;
+app.listen(PORT, () => {
+  console.log("you are listening on port :", PORT);
+});

@@ -1,37 +1,43 @@
-# Firebase Admin SDK
-# ✅ Node.js
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# ✅ Environment Variables
+# Environment variables
 .env
-.env.*
+.env.local
+.env.production
 
-# ✅ Firebase Admin Credentials
-config/budgettracker-8f9d7-firebase-adminsdk-k533o-528c3dbd97.json
-*.serviceAccountKey.json
+# Firebase service account (NEVER commit this)
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
 
-# ✅ OS files
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
 .DS_Store
 Thumbs.db
+```
 
-# ✅ Logs and Temp
-logs/
-*.log
-*.tmp
+---
 
-# ✅ Coverage (test coverage reports)
-coverage/
+### **STEP 6: For Railway/Render Deployment**
 
-# ✅ IDEs
-.vscode/
-.idea/
+**When you deploy, add these environment variables in the dashboard:**
 
-# ✅ Build outputs (if any)
-dist/
-build/
-
-# ✅ Misc
-*.local
+#### **Railway:**
+1. Go to your project → Variables tab
+2. Click "New Variable"
+3. Add each one:
+```
+FIREBASE_PROJECT_ID = budgettracker-8f9d7
+FIREBASE_CLIENT_EMAIL = firebase-adminsdk-k533o@budgettracker-8f9d7.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----
+MIIE...
+-----END PRIVATE KEY-----"
+MONGODB_URI = mongodb+srv://...
+JWT_SECRET = your-secret
+PORT = 5000
+NODE_ENV = production
+URL_API = /api/v1
+mongo.txt
