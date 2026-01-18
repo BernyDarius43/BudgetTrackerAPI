@@ -6,7 +6,8 @@ const cors = require("cors");
 
 const connectDB = require("./config/db");
 
-const app = express();
+app.use(express.json());
+app.use(bodyParser.json());
 
 // --- CORS: supports 3 options ---
 // 1) Expo mobile (often sends no Origin) -> allowed
@@ -36,8 +37,7 @@ app.use(
 );
 
 // Middleware
-app.use(express.json());
-app.use(bodyParser.json());
+
 
 // Connect to MongoDB
 connectDB();
