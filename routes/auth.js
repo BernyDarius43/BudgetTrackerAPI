@@ -8,7 +8,7 @@ const { buildUserPayload } = require('../utils/userUtils');
 
 
 const router = express.Router();
-const urlApi = process.env.URL_API
+const urlApi = process.env.URL_DEV
 const secret = process.env.JWT_SECRET;
 
 
