@@ -3,9 +3,8 @@ const router = express.Router();
 const { addIncome, getIncome, getAllIncomes, deleteIncome, updateIncome } = require('../controllers/incomeController');
 const verifyFirebaseToken = require('../middleware/verifyFirebaseToken');
 
-require("dotenv").config() 
 
-const urlApi = process.env.URL_API
+const urlApi = process.env.URL_DEV
 //data comes from the controller
 router
 .post(urlApi + "/addIncome", verifyFirebaseToken, addIncome)

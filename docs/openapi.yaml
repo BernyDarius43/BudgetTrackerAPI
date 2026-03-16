@@ -1,0 +1,762 @@
+﻿openapi: 3.0.3
+info:
+  title: BudgetTracker API
+  version: 1.0.0
+  description: |
+    BudgetTracker backend API secured by Firebase ID tokens.
+    All protected endpoints require: Authorization: Bearer <FIREBASE_ID_TOKEN>
+
+servers:
+  - url: http://localhost:5000
+    description: Local Development
+  - url: https://budgettrackerapi-muxo.onrender.com
+    description: Render Production
+
+tags:
+  - name: Auth
+  - name: Users
+  - name: Income
+  - name: Expense
+  - name: Health
+  - name: Home
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Firebase ID Token (NOT your own JWT)
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        detail:
+          type: string
+        code:
+          type: string
+      required: [error]
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "687848e1dd2446f74ce94a39"
+        uid:
+          type: string
+          example: "irw4Vfd6DYWgG4ymLCpLHnMMxom2"
+        email:
+          type: string
+          example: "user@example.com"
+        displayName:
+          type: string
+          example: ""
+        phoneNumber:
+          type: string
+          example: ""
+        photoURL:
+          type: string
+          example: ""
+        role:
+          type: string
+          example: "user"
+        preferences:
+          type: object
+          properties:
+            currency:
+              type: string
+              example: "CAD"
+            theme:
+              type: string
+              example: "light"
+        lastLogin:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TransactionBase:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "6966421c2abbcb27d8ac2011"
+        uid:
+          type: string
+          example: "EE1RzOTl6CRwXIGiboZTrqeDgJE2"
+        title:
+          type: string
+          example: "Paycheck"
+        amount:
+          type: number
+          example: 1200
+        category:
+          type: string
+          example: "Salary"
+        description:
+          type: string
+          nullable: true
+          example: "Bi-weekly paycheck"
+        date:
+          type: string
+          format: date-time
+        type:
+          type: string
+          description: "Income or Expense"
+          enum: [Income, Expense]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    IncomeCreate:
+      type: object
+      properties:
+        title:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+        type:
+          type: string
+          example: "Income"
+      required: [title, amount, category, date]
+
+    ExpenseCreate:
+      type: object
+      properties:
+        title:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+        type:
+          type: string
+          example: "Expense"
+      required: [title, amount, category, date]
+
+    TransactionUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+        type:
+          type: string
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Should return OK if the service is up.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+                  message: { type: string }
+
+  /home:
+    get:
+      tags: [Home]
+      summary: Home
+      description: Simple welcome message.
+      responses:
+        "200":
+          description: OK
+
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register (idempotent)
+      description: Creates Mongo user document if missing.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                photoURL:
+                  type: string
+                phoneNumber:
+                  type: string
+      responses:
+        "200":
+          description: User already registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  user: { $ref: "#/components/schemas/User" }
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  user: { $ref: "#/components/schemas/User" }
+        "400":
+          description: Missing fields
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Invalid Firebase token
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Registration error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  user: { $ref: "#/components/schemas/User" }
+        "401":
+          description: Invalid Firebase token
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: User not found (register first)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "400":
+          description: Login failed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh server-side session info (updates lastLogin)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  user: { $ref: "#/components/schemas/User" }
+        "401":
+          description: Invalid Firebase token
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Token refresh failed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout (revokes Firebase refresh tokens)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logged out
+        "401":
+          description: Invalid Firebase token
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Logout failed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/user/me:
+    get:
+      tags: [Users]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  user: { $ref: "#/components/schemas/User" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    patch:
+      tags: [Users]
+      summary: Update current user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                phoneNumber:
+                  type: string
+                photoURL:
+                  type: string
+                preferences:
+                  type: object
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  user: { $ref: "#/components/schemas/User" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Failed to update profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/fetchAllIncomes:
+    get:
+      tags: [Income]
+      summary: List incomes (owned by current user)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Income list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/TransactionBase" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Failed to fetch incomes
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/addIncome:
+    post:
+      tags: [Income]
+      summary: Create income
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/IncomeCreate" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TransactionBase" }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Failed to create income
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/fetchIncome/{id}:
+    get:
+      tags: [Income]
+      summary: Get income by id (must be owned)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Income
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  income: { $ref: "#/components/schemas/TransactionBase" }
+                  message: { type: string }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Income not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Failed to fetch income
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/update-income/{id}:
+    put:
+      tags: [Income]
+      summary: Update income (must be owned)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TransactionUpdate" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TransactionBase" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Income not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Failed to update income
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/delete-income/{id}:
+    delete:
+      tags: [Income]
+      summary: Delete income (must be owned)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Income not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Failed to delete income
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/fetchAllExpense:
+    get:
+      tags: [Expense]
+      summary: List expenses (owned by current user)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Expense list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/TransactionBase" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Failed to fetch expenses
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/add-expense:
+    post:
+      tags: [Expense]
+      summary: Create expense
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ExpenseCreate" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TransactionBase" }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Failed to create expense
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/fetchExpense/{id}:
+    get:
+      tags: [Expense]
+      summary: Get expense by id (must be owned)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Expense
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  expense: { $ref: "#/components/schemas/TransactionBase" }
+                  message: { type: string }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Expense not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Failed to fetch expense
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/update-expense/{id}:
+    put:
+      tags: [Expense]
+      summary: Update expense (must be owned)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TransactionUpdate" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TransactionBase" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Expense not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Failed to update expense
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /api/v1/delete-expense/{id}:
+    delete:
+      tags: [Expense]
+      summary: Delete expense (must be owned)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Expense not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          description: Failed to delete expense
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }

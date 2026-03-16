@@ -1,0 +1,936 @@
+{
+  "info": {
+    "name": "BudgetTracker API",
+    "description": "Full collection for BudgetTracker backend. All protected routes require a Firebase ID token in the {{firebase_token}} environment variable.\n\nHow to get a token:\n1. Log in to the app on your phone\n2. In your authContext, temporarily log the token after getIdToken()\n3. Paste it into the {{firebase_token}} env variable\n\nTokens expire after 1 hour - refresh as needed.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "No auth required. Should return { status: 'ok', message: 'Server is running' }."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns ok status', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.status).to.eql('ok');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Test User\",\n  \"photoURL\": \"\",\n  \"phoneNumber\": \"\"\n}"
+            },
+            "description": "Creates a MongoDB user document for the Firebase user. Idempotent - returns 200 if already exists, 201 if newly created."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 or 201', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "pm.test('Returns user object', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('user');",
+                  "  pm.expect(body.user).to.have.property('uid');",
+                  "  pm.expect(body.user).to.have.property('email');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "description": "Logs in the Firebase user. Requires the user to be registered. Updates lastLogin timestamp."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => {",
+                  "  pm.expect(pm.response.code).to.eql(200);",
+                  "});",
+                  "pm.test('Returns user with uid', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.user).to.have.property('uid');",
+                  "});",
+                  "pm.test('Returns message', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Updates lastLogin on the Mongo user. Called on app resume."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns refreshed user', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('user');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Revokes Firebase refresh tokens for the user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - No Token (expect 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "description": "Negative test - should return 401 when no Authorization header is provided."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Rejects unauthenticated request with 401', () => {",
+                  "  pm.expect(pm.response.code).to.eql(401);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/user/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user",
+                "me"
+              ]
+            },
+            "description": "Returns the Mongo user profile for the authenticated Firebase user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has required user fields', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.user).to.have.property('uid');",
+                  "  pm.expect(body.user).to.have.property('email');",
+                  "  pm.expect(body.user).to.have.property('role');",
+                  "  pm.expect(body.user).to.have.property('preferences');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get My Profile - No Token (expect 401)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/user/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user",
+                "me"
+              ]
+            },
+            "description": "Negative test - should return 401 with no token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Rejects unauthenticated request', () => {",
+                  "  pm.expect(pm.response.code).to.eql(401);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"Updated Name\",\n  \"phoneNumber\": \"+15551234567\",\n  \"photoURL\": \"\",\n  \"preferences\": {\n    \"currency\": \"USD\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/user/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user",
+                "me"
+              ]
+            },
+            "description": "Updates profile fields for the authenticated user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns updated user', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('user');",
+                  "  pm.expect(body.user).to.have.property('uid');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Income",
+      "item": [
+        {
+          "name": "List All Incomes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/fetchAllIncomes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "fetchAllIncomes"
+              ]
+            },
+            "description": "Returns all incomes owned by the authenticated user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns an array', () => {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});",
+                  "pm.test('Each item has required fields', () => {",
+                  "  const items = pm.response.json();",
+                  "  if (items.length > 0) {",
+                  "    pm.expect(items[0]).to.have.property('_id');",
+                  "    pm.expect(items[0]).to.have.property('title');",
+                  "    pm.expect(items[0]).to.have.property('amount');",
+                  "    pm.expect(items[0]).to.have.property('category');",
+                  "    pm.expect(items[0]).to.have.property('date');",
+                  "    // save first id for downstream tests",
+                  "    pm.environment.set('income_id', items[0]._id);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Income",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/addIncome",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "addIncome"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Paycheck\",\n  \"amount\": 2500,\n  \"category\": \"Salary\",\n  \"description\": \"Bi-weekly paycheck from Postman\",\n  \"date\": \"2026-03-15T00:00:00.000Z\"\n}"
+            },
+            "description": "Creates a new income entry. Requires title, amount, category, date."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Returns created income', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('_id');",
+                  "  pm.expect(body.title).to.eql('Test Paycheck');",
+                  "  pm.expect(body.amount).to.eql(2500);",
+                  "  // save id for get/update/delete tests",
+                  "  pm.environment.set('income_id', body._id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Income by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/fetchIncome/{{income_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "fetchIncome",
+                "{{income_id}}"
+              ]
+            },
+            "description": "Fetch a single income by ID. Run 'Create Income' first to populate {{income_id}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns correct income', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('income');",
+                  "  pm.expect(body.income._id).to.eql(pm.environment.get('income_id'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Income",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/update-income/{{income_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "update-income",
+                "{{income_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Paycheck\",\n  \"amount\": 3000,\n  \"category\": \"Salary\",\n  \"description\": \"Updated via Postman\",\n  \"date\": \"2026-03-15T00:00:00.000Z\"\n}"
+            },
+            "description": "Updates an existing income. Run 'Create Income' first to populate {{income_id}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Amount was updated', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.amount).to.eql(3000);",
+                  "  pm.expect(body.title).to.eql('Updated Paycheck');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Income",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/delete-income/{{income_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "delete-income",
+                "{{income_id}}"
+              ]
+            },
+            "description": "Deletes an income by ID. Run 'Create Income' first to populate {{income_id}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.environment.unset('income_id');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Income - Missing Required Fields (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/addIncome",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "addIncome"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Missing amount and date\"\n}"
+            },
+            "description": "Negative test - should return 400 when required fields are missing."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Rejects incomplete payload', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Expense",
+      "item": [
+        {
+          "name": "List All Expenses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/fetchAllExpense",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "fetchAllExpense"
+              ]
+            },
+            "description": "Returns all expenses owned by the authenticated user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns an array', () => {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});",
+                  "pm.test('Each item has required fields', () => {",
+                  "  const items = pm.response.json();",
+                  "  if (items.length > 0) {",
+                  "    pm.expect(items[0]).to.have.property('_id');",
+                  "    pm.expect(items[0]).to.have.property('title');",
+                  "    pm.expect(items[0]).to.have.property('amount');",
+                  "    pm.expect(items[0]).to.have.property('category');",
+                  "    pm.expect(items[0]).to.have.property('date');",
+                  "    pm.environment.set('expense_id', items[0]._id);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Expense",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/add-expense",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "add-expense"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Groceries\",\n  \"amount\": 85.50,\n  \"category\": \"Food & Dining\",\n  \"description\": \"Weekly groceries from Postman\",\n  \"date\": \"2026-03-15T00:00:00.000Z\"\n}"
+            },
+            "description": "Creates a new expense entry. Requires title, amount, category, date."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Returns created expense', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('_id');",
+                  "  pm.expect(body.title).to.eql('Test Groceries');",
+                  "  pm.expect(body.amount).to.eql(85.5);",
+                  "  pm.environment.set('expense_id', body._id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Expense by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/fetchExpense/{{expense_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "fetchExpense",
+                "{{expense_id}}"
+              ]
+            },
+            "description": "Fetch a single expense by ID. Run 'Create Expense' first to populate {{expense_id}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns correct expense', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('expense');",
+                  "  pm.expect(body.expense._id).to.eql(pm.environment.get('expense_id'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Expense",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/update-expense/{{expense_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "update-expense",
+                "{{expense_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Groceries\",\n  \"amount\": 120,\n  \"category\": \"Food & Dining\",\n  \"description\": \"Updated via Postman\",\n  \"date\": \"2026-03-15T00:00:00.000Z\"\n}"
+            },
+            "description": "Updates an existing expense. Run 'Create Expense' first to populate {{expense_id}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Amount was updated', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.amount).to.eql(120);",
+                  "  pm.expect(body.title).to.eql('Updated Groceries');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Expense",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/delete-expense/{{expense_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "delete-expense",
+                "{{expense_id}}"
+              ]
+            },
+            "description": "Deletes an expense by ID. Run 'Create Expense' first to populate {{expense_id}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.environment.unset('expense_id');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Expense - Missing Required Fields (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{firebase_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/add-expense",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "add-expense"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Missing amount and date\"\n}"
+            },
+            "description": "Negative test - should return 400 when required fields are missing."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Rejects incomplete payload', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

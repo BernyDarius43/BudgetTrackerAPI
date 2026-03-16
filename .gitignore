@@ -1,7 +1,7 @@
-# Environment variables
+# Environment variables (never commit real secrets)
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
 
 # Firebase service account (NEVER commit this)
 *-firebase-adminsdk-*.json
@@ -17,30 +17,6 @@ npm-debug.log*
 # OS files
 .DS_Store
 Thumbs.db
-```
-
 firebaseFE.js
-
----
-
-### **STEP 6: For Railway/Render Deployment**
-
-**When you deploy, add these environment variables in the dashboard:**
-
-#### **Railway:**
-1. Go to your project → Variables tab
-2. Click "New Variable"
-3. Add each one:
-```
-FIREBASE_PROJECT_ID = budgettracker-8f9d7
-FIREBASE_CLIENT_EMAIL = firebase-adminsdk-k533o@budgettracker-8f9d7.iam.gserviceaccount.com
-FIREBASE_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----
-MIIE...
------END PRIVATE KEY-----"
-MONGODB_URI = mongodb+srv://...
-JWT_SECRET = your-secret
-PORT = 5000
-NODE_ENV = production
-URL_API = /api/v1
 mongo.txt
 .env.development

@@ -3,9 +3,8 @@ const router = express.Router();
 const { addExpense, getAllExpenses, getExpense, deleteExpense, updateExpense } = require('../controllers/expenseController');
 const verifyFirebaseToken = require('../middleware/verifyFirebaseToken');
 
-require("dotenv").config() 
 
-const urlApi = process.env.URL_API
+const urlApi = process.env.URL_DEV
 //data comes from the controller
 router
 .post(urlApi + "/add-expense", verifyFirebaseToken, addExpense)

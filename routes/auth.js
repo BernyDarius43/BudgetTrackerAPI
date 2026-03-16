@@ -3,12 +3,11 @@ const admin = require('../config/firebase'); // Add this at top
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const verifyFirebaseToken = require('../middleware/verifyFirebaseToken');
-require("dotenv").config();
 const { buildUserPayload } = require('../utils/userUtils');
 
 
 const router = express.Router();
-const urlApi = process.env.URL_API
+const urlApi = process.env.URL_DEV
 const secret = process.env.JWT_SECRET;
 
 

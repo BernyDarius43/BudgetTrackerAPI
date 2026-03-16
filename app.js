@@ -1,4 +1,5 @@
-require("dotenv").config();
+require("dotenv-flow").config();
+require("./config/validateEnv");
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -45,6 +46,7 @@ const homeRoute = require("./routes/home");
 const expenseRoute = require("./routes/expense");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
+const verifyFirebaseToken = require("./middleware/verifyFirebaseToken");
 
 app.use(homeRoute);
 app.use(income);
@@ -53,11 +55,16 @@ app.use(authRoutes);
 app.use(userRoutes);
 
 // ---- Start
-const PORT = process.env.PORT || 1738;
+const PORT = process.env.PORT;;
 app.listen(PORT, () => {
   console.log("you are listening on port :", PORT);
 });
 app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Server is running" });
+});
+app.get("/whoami", verifyFirebaseToken, (req, res) => {
+  res.status(200).json({ uid: req.firebase.uid, email: req.firebase.email });
+});
   res.status(200).json({ status: "ok", message: "Server is running" , timestamp: new Date().toISOString()});
 });
 app.get("/version", (req, res) => {
