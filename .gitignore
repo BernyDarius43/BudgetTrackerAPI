@@ -19,3 +19,4 @@ npm-debug.log*
 Thumbs.db
 firebaseFE.js
 mongo.txt
+.env.development
