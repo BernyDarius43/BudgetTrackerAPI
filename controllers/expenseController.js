@@ -97,6 +97,7 @@ if (!result) {
       console.log("Expense updated successfully", result);
       return res.status(200).json(result)
     } catch (error) {
+         console.error("Failed to update expense", error.message, error);
         res.status(500).json({ error: 'Failed to update expense' });
     }
 }
