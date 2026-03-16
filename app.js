@@ -55,18 +55,24 @@ app.use(authRoutes);
 app.use(userRoutes);
 
 // ---- Start
-const PORT = process.env.PORT;;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log("you are listening on port :", PORT);
 });
+ 
+// ---- Utility routes
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok", message: "Server is running" });
+  res.status(200).json({
+    status: "ok",
+    message: "Server is running",
+    timestamp: new Date().toISOString(), // ✅ merged from main
+  });
 });
+ 
 app.get("/whoami", verifyFirebaseToken, (req, res) => {
   res.status(200).json({ uid: req.firebase.uid, email: req.firebase.email });
 });
-  res.status(200).json({ status: "ok", message: "Server is running" , timestamp: new Date().toISOString()});
-});
+
 app.get("/version", (req, res) => {
   res.json({
     ok: true,
