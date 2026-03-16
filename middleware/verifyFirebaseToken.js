@@ -1,6 +1,6 @@
 const admin = require('../config/firebase');
 const jwt = require('jsonwebtoken');
-require("dotenv").config();
+require("dotenv-flow").config();
 
 const verifyFirebaseToken = async (req, res, next) => {
   const secret = process.env.JWT_SECRET;
