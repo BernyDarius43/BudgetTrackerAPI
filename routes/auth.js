@@ -3,7 +3,6 @@ const admin = require('../config/firebase'); // Add this at top
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const verifyFirebaseToken = require('../middleware/verifyFirebaseToken');
-require("dotenv").config();
 const { buildUserPayload } = require('../utils/userUtils');
 
 

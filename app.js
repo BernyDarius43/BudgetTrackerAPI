@@ -62,6 +62,6 @@ app.listen(PORT, () => {
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
 });
-app.get("/whoami", verifyFirebaseToken ,(req, res) => {
-  res.status(200).json({ uid, email });
+app.get("/whoami", verifyFirebaseToken, (req, res) => {
+  res.status(200).json({ uid: req.firebase.uid, email: req.firebase.email });
 });
