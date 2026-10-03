@@ -423,7 +423,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
 
-  /api/v1/fetchAllIncomes:
+  /api/v1/incomes:
     get:
       tags: [Income]
       summary: List incomes (owned by current user)
@@ -447,8 +447,6 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
-
-  /api/v1/addIncome:
     post:
       tags: [Income]
       summary: Create income
@@ -481,7 +479,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
 
-  /api/v1/fetchIncome/{id}:
+  /api/v1/incomes/{id}:
     get:
       tags: [Income]
       summary: Get income by id (must be owned)
@@ -517,8 +515,6 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
-
-  /api/v1/update-income/{id}:
     put:
       tags: [Income]
       summary: Update income (must be owned)
@@ -555,8 +551,6 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
-
-  /api/v1/delete-income/{id}:
     delete:
       tags: [Income]
       summary: Delete income (must be owned)
@@ -592,7 +586,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
 
-  /api/v1/fetchAllExpense:
+  /api/v1/expenses:
     get:
       tags: [Expense]
       summary: List expenses (owned by current user)
@@ -616,41 +610,39 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
-
-  /api/v1/add-expense:
     post:
-      tags: [Expense]
-      summary: Create expense
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/ExpenseCreate" }
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/TransactionBase" }
-        "400":
-          description: Validation error
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/ErrorResponse" }
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/ErrorResponse" }
-        "500":
-          description: Failed to create expense
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/ErrorResponse" }
+          tags: [Expense]
+          summary: Create expense
+          security:
+            - bearerAuth: []
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema: { $ref: "#/components/schemas/ExpenseCreate" }
+          responses:
+            "201":
+              description: Created
+              content:
+                application/json:
+                  schema: { $ref: "#/components/schemas/TransactionBase" }
+            "400":
+              description: Validation error
+              content:
+                application/json:
+                  schema: { $ref: "#/components/schemas/ErrorResponse" }
+            "401":
+              description: Unauthorized
+              content:
+                application/json:
+                  schema: { $ref: "#/components/schemas/ErrorResponse" }
+            "500":
+              description: Failed to create expense
+              content:
+                application/json:
+                  schema: { $ref: "#/components/schemas/ErrorResponse" }
 
-  /api/v1/fetchExpense/{id}:
+  /api/v1/expenses/{id}:
     get:
       tags: [Expense]
       summary: Get expense by id (must be owned)
@@ -686,8 +678,6 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
-
-  /api/v1/update-expense/{id}:
     put:
       tags: [Expense]
       summary: Update expense (must be owned)
@@ -724,8 +714,6 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
-
-  /api/v1/delete-expense/{id}:
     delete:
       tags: [Expense]
       summary: Delete expense (must be owned)

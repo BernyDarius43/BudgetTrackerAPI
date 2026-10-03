@@ -1,3 +1,19 @@
+/**
+ * @openapi
+ * /api/v1/auth/login:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Login user via Firebase token
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged in
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
 const express = require('express');
 const admin = require('../config/firebase'); // Add this at top
 const jwt = require('jsonwebtoken');
@@ -7,12 +23,11 @@ const { buildUserPayload } = require('../utils/userUtils');
 
 
 const router = express.Router();
-const urlApi = process.env.URL_DEV
 const secret = process.env.JWT_SECRET;
 
 
 // 🔐 Register Route
-router.post(`${urlApi}/auth/register`, verifyFirebaseToken, async (req, res) => {
+router.post(`/auth/register`, verifyFirebaseToken, async (req, res) => {
   try {
     const { uid, email } = req.firebase;
     // const { photoURL, displayName, phoneNumber } = req.body;   
@@ -49,7 +64,7 @@ router.post(`${urlApi}/auth/register`, verifyFirebaseToken, async (req, res) => 
 });
 
 // Login route
-router.post(`${urlApi}/auth/login`, verifyFirebaseToken, async (req, res) => {
+router.post(`/auth/login`, verifyFirebaseToken, async (req, res) => {
   const { uid, email } = req.firebase;
   
   try {
@@ -87,7 +102,7 @@ router.post(`${urlApi}/auth/login`, verifyFirebaseToken, async (req, res) => {
 });
 
 // IdToken refresh route
-router.post(`${urlApi}/auth/refresh`, verifyFirebaseToken, async (req, res) => {
+router.post(`/auth/refresh`, verifyFirebaseToken, async (req, res) => {
   const { uid } = req.firebase;
 
   try {
@@ -109,7 +124,7 @@ router.post(`${urlApi}/auth/refresh`, verifyFirebaseToken, async (req, res) => {
 
 
 // 🔐 Secure logout route
-router.post(`${urlApi}/auth/logout`, verifyFirebaseToken, async (req, res) => {
+router.post(`/auth/logout`, verifyFirebaseToken, async (req, res) => {
   try {
     const firebaseUid = req.firebase.uid;
 

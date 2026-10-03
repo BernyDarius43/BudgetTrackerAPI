@@ -1,14 +1,28 @@
+/**
+ * @openapi
+ * /api/v1/user/me:
+ *   get:
+ *     tags: [Users]
+ *     summary: Get current user
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
 const express = require('express');
 const verifyFirebaseToken = require('../middleware/verifyFirebaseToken');
 const userController = require('../controllers/userController');
 
 const router = express.Router();
-const urlApi = process.env.URL_DEV;
 
-console.log('[User Routes] Registering routes with prefix:', urlApi);
 
-router.get(`${urlApi}/user/me`, verifyFirebaseToken, userController.getMe);
-router.patch(`${urlApi}/user/me`, verifyFirebaseToken, userController.updateMe);
+router.get(`/user/me`, verifyFirebaseToken, userController.getMe);
+router.patch(`/user/me`, verifyFirebaseToken, userController.updateMe);
 
 
 console.log('[User Routes] Routes registered:');

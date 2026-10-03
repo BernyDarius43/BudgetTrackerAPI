@@ -8,11 +8,13 @@ const connectDB = require("./config/db");
 require("./config/firebase"); // ensure Firebase Admin initializes
 
 const app = express(); // ✅ MUST exist before app.use
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./config/swagger");
 
 // ---- Middleware
 app.use(express.json());
 app.use(bodyParser.json());
-
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // CORS
 const allowed = (process.env.CORS_ORIGINS || "")
   .split(",")
@@ -48,11 +50,11 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const verifyFirebaseToken = require("./middleware/verifyFirebaseToken");
 
-app.use(homeRoute);
-app.use(income);
-app.use(expenseRoute);
-app.use(authRoutes);
-app.use(userRoutes);
+app.use(process.env.URL_API,homeRoute);
+app.use(process.env.URL_API,income);
+app.use(process.env.URL_API,expenseRoute);
+app.use(process.env.URL_API,authRoutes);
+app.use(process.env.URL_API,userRoutes);
 
 // ---- Start
 const PORT = process.env.PORT;
