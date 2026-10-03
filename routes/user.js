@@ -26,6 +26,4 @@ router.patch(`/user/me`, verifyFirebaseToken, userController.updateMe);
 
 
 console.log('[User Routes] Routes registered:');
-console.log('  GET ' + urlApi + '/user/me');
-console.log('  PATCH ' + urlApi + '/user/me');
 module.exports = router;
